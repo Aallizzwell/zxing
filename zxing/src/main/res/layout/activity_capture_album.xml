@@ -46,7 +46,7 @@
 
 
         <!-- 扫描取景框 -->
-        <com.maizi.zxing.view.ViewfinderView
+        <com.aalizzwell.zxing.view.ViewfinderView
                 android:id="@+id/viewfinderView"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"

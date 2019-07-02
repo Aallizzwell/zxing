@@ -16,13 +16,13 @@
 
 
     <application>
-        <activity android:name=".android.CaptureAlbumActivity"
+        <activity android:name="com.aalizzwell.zxing.android.CaptureAlbumActivity"
                   android:configChanges="orientation|screenSize"
                   android:screenOrientation="portrait"
                   android:theme="@style/Theme.AppCompat.NoActionBar"
                   android:windowSoftInputMode="adjustPan|stateHidden"/>
         <activity
-                android:name=".android.BaseCaptureActivity"
+                android:name="com.aalizzwell.zxing.android.BaseCaptureActivity"
                 android:configChanges="orientation|screenSize"
                 android:screenOrientation="portrait"
                 android:theme="@style/Theme.AppCompat.NoActionBar"
