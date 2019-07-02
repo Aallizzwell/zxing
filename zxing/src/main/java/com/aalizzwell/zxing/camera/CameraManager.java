@@ -114,18 +114,17 @@ public class CameraManager {
         }
     }
 
-    /*切换闪光灯*/
-    public void switchFlashLight() {
-        //  Log.i("打开闪光灯", "openFlashLight");
-
+    /**
+     * 切换闪光灯
+     */
+    public void switchFlash() {
         Camera.Parameters parameters = camera.getCamera().getParameters();
         String flashMode = parameters.getFlashMode();
-
         if (flashMode.equals(Camera.Parameters.FLASH_MODE_TORCH)) {
-            /*关闭闪光灯*/
+            //关闭闪光灯
             parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         } else {
-            /*打开闪光灯*/
+            //打开闪光灯
             parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
         }
         camera.getCamera().setParameters(parameters);

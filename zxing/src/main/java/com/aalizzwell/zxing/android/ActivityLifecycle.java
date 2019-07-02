@@ -15,12 +15,15 @@
  */
 package com.aalizzwell.zxing.android;
 
-import android.view.MotionEvent;
 
-public interface CaptureTouchEvent {
+public interface ActivityLifecycle {
 
-    /**
-     * {@link android.app.Activity#onTouchEvent(MotionEvent)}
-     */
-    boolean onTouchEvent(MotionEvent event);
+    void onCreate();
+
+    void onResume();
+
+    void onPause();
+
+    void onDestroy();
+
 }

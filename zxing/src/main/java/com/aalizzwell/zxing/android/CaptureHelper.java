@@ -2,7 +2,6 @@ package com.aalizzwell.zxing.android;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.FeatureInfo;
 import android.content.pm.PackageManager;
@@ -14,8 +13,6 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;
 import com.aalizzwell.zxing.AmbientLightManager;
 import com.maizi.zxing.R;
@@ -24,58 +21,43 @@ import com.aalizzwell.zxing.camera.CameraManager;
 import com.aalizzwell.zxing.view.ViewfinderView;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
 
-public class CaptureHelper implements CaptureLifecycle, CaptureTouchEvent, CaptureManager {
+public class CaptureHelper implements ActivityLifecycle {
 
 
     public static final String TAG = CaptureHelper.class.getSimpleName();
 
     private Activity activity;
-
     private CameraManager cameraManager;
-
     private InactivityTimer inactivityTimer;
     private BeepManager beepManager;
     private AmbientLightManager ambientLightManager;
-
     private SurfaceView surfaceView;
     private ViewfinderView viewfinderView;
     private SurfaceHolder surfaceHolder;
-    private SurfaceHolder.Callback callback;
-
-    private Collection<BarcodeFormat> decodeFormats;
-    private Map<DecodeHintType, Object> decodeHints;
-    private String characterSet;
-
+    private SurfaceHolder.Callback surfaceCallback;
+    private OnResultCallback onResultCallback;
+    private InitOption initConfig;
+    private CaptureActivityHandler captureHandler;
+    private OnHandleDecodeListener onHandleDecodeListener;
     private boolean hasSurface;
 
-
-    private OnCaptureCallback onCaptureCallback;
-    public InitOption initConfig;
-    private CaptureActivityHandler captureHandler;
-    private OnCaptureListener onCaptureListener;
-
-    public CaptureHelper(Activity activity, InitOption initConfig, SurfaceView surfaceView, ViewfinderView viewfinderView) {
+    CaptureHelper(Activity activity, InitOption initConfig, OnResultCallback onResultCallback, SurfaceView surfaceView, ViewfinderView viewfinderView) {
         this.activity = activity;
         this.surfaceView = surfaceView;
         this.viewfinderView = viewfinderView;
         this.initConfig = initConfig;
-        surfaceHolder = surfaceView.getHolder();
-        hasSurface = false;
-
+        this.onResultCallback = onResultCallback;
     }
 
     @Override
     public void onCreate() {
-
         hasSurface = false;
+        surfaceHolder = surfaceView.getHolder();
         inactivityTimer = new InactivityTimer(activity);
         beepManager = new BeepManager(activity, initConfig);
         ambientLightManager = new AmbientLightManager(activity);
-
-        callback = new SurfaceHolder.Callback() {
+        surfaceCallback = new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 if (holder == null) {
@@ -89,7 +71,6 @@ public class CaptureHelper implements CaptureLifecycle, CaptureTouchEvent, Captu
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
             }
 
             @Override
@@ -97,9 +78,7 @@ public class CaptureHelper implements CaptureLifecycle, CaptureTouchEvent, Captu
                 hasSurface = false;
             }
         };
-
-        onCaptureListener = new OnCaptureListener() {
-
+        onHandleDecodeListener = new OnHandleDecodeListener() {
             @Override
             public void onHandleDecode(Result result, Bitmap barcode, float scaleFactor) {
                 inactivityTimer.onActivity();
@@ -129,8 +108,34 @@ public class CaptureHelper implements CaptureLifecycle, CaptureTouchEvent, Captu
             // surfaceCreated() won't be called, so init the camera here.
             initCamera(surfaceHolder);
         } else {
-            // Install the callback and wait for surfaceCreated() to init the camera.
-            surfaceHolder.addCallback(callback);
+            // Install the surfaceCallback and wait for surfaceCreated() to init the camera.
+            surfaceHolder.addCallback(surfaceCallback);
+        }
+    }
+
+    private void initCamera(SurfaceHolder surfaceHolder) {
+        if (surfaceHolder == null) {
+            throw new IllegalStateException("No SurfaceHolder provided");
+        }
+        if (cameraManager.isOpen()) {
+            Log.w(TAG, "initCamera() while already open -- late SurfaceView surfaceCallback?");
+            return;
+        }
+        try {
+            // 打开Camera硬件设备
+            cameraManager.openDriver(surfaceHolder);
+            // 创建一个handler来打开预览，并抛出一个运行时异常
+            if (captureHandler == null) {
+                captureHandler = new CaptureActivityHandler(this, cameraManager, onHandleDecodeListener);
+            }
+        } catch (IOException ioe) {
+            Log.w(TAG, ioe);
+            displayFrameworkBugMessageAndExit();
+        } catch (RuntimeException e) {
+            // Barcode Scanner has seen crashes in the wild of this variety:
+            // java.?lang.?RuntimeException: Fail to connect to camera service
+            Log.w(TAG, "Unexpected error initializing camera", e);
+            displayFrameworkBugMessageAndExit();
         }
     }
 
@@ -145,104 +150,43 @@ public class CaptureHelper implements CaptureLifecycle, CaptureTouchEvent, Captu
         beepManager.close();
         cameraManager.closeDriver();
         if (!hasSurface) {
-            surfaceHolder.removeCallback(callback);
+            surfaceHolder.removeCallback(surfaceCallback);
         }
     }
 
-    @Override
-    public void onDestroy() {
-        inactivityTimer.shutdown();
-        viewfinderView.stopAnimator();
-    }
 
-    @Override
-    public CameraManager getCameraManager() {
-        return cameraManager;
-    }
-
-    @Override
-    public BeepManager getBeepManager() {
-        return null;
-    }
-
-    @Override
-    public AmbientLightManager getAmbientLightManager() {
-        return null;
-    }
-
-    @Override
-    public InactivityTimer getInactivityTimer() {
-        return null;
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return false;
-    }
-
-    private void initCamera(SurfaceHolder surfaceHolder) {
-        if (surfaceHolder == null) {
-            throw new IllegalStateException("No SurfaceHolder provided");
-        }
-        if (cameraManager.isOpen()) {
-            Log.w(TAG, "initCamera() while already open -- late SurfaceView callback?");
-            return;
-        }
-        try {
-            // 打开Camera硬件设备
-            cameraManager.openDriver(surfaceHolder);
-            // 创建一个handler来打开预览，并抛出一个运行时异常
-            if (captureHandler == null) {
-                captureHandler = new CaptureActivityHandler(this, cameraManager, onCaptureListener);
-            }
-        } catch (IOException ioe) {
-            Log.w(TAG, ioe);
-            displayFrameworkBugMessageAndExit();
-        } catch (RuntimeException e) {
-            // Barcode Scanner has seen crashes in the wild of this variety:
-            // java.?lang.?RuntimeException: Fail to connect to camera service
-            Log.w(TAG, "Unexpected error initializing camera", e);
-            displayFrameworkBugMessageAndExit();
-        }
-    }
-
-    public void onResult(Result result) {
-        final String text = result.getText();
+    private void onResult(final Result result) {
         if (initConfig.isContinuousScan()) {
-            if (onCaptureCallback != null) {
-                onCaptureCallback.onResultCallback(text);
+            if (onResultCallback != null) {
+                onResultCallback.onResultCallback(result);
             }
             if (initConfig.isAutoRestartPreviewAndDecode()) {
                 restartPreviewAndDecode();
             }
             return;
         }
-
-        if (initConfig.isPlayBeep()) {//如果播放音效，则稍微延迟一点，给予播放音效时间
+        //如果播放音效，则稍微延迟一点，给予播放音效时间
+        if (initConfig.isPlayBeep()) {
             captureHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    //如果设置了回调，并且onCallback返回为true，则表示拦截
-                    if (onCaptureCallback != null && onCaptureCallback.onResultCallback(text)) {
-                        return;
-                    }
-                    Intent intent = new Intent();
-                    intent.putExtra(Intents.Scan.RESULT, text);
-                    activity.setResult(Activity.RESULT_OK, intent);
-                    activity.finish();
+                    onResultCallback.onResultCallback(result);
                 }
             }, 100);
-            return;
         }
+    }
 
-        //如果设置了回调，并且onCallback返回为true，则表示拦截
-        if (onCaptureCallback != null && onCaptureCallback.onResultCallback(text)) {
-            return;
-        }
-//        Intent intent = new Intent();
-//        intent.putExtra(Intents.Scan.RESULT, text);
-//        activity.setResult(Activity.RESULT_OK, intent);
-//        activity.finish();
+
+    public CameraManager getCameraManager() {
+        return cameraManager;
+    }
+
+    public Handler getCaptureHandler() {
+        return captureHandler;
+    }
+
+    ViewfinderView getViewfinderView() {
+        return viewfinderView;
     }
 
     private void displayFrameworkBugMessageAndExit() {
@@ -255,10 +199,25 @@ public class CaptureHelper implements CaptureLifecycle, CaptureTouchEvent, Captu
     }
 
     /**
-     * @param pm
-     * @return 是否有闪光灯
+     * 重新启动扫码和解码器
      */
-    public static boolean isSupportCameraLedFlash(PackageManager pm) {
+    private void restartPreviewAndDecode() {
+        if (captureHandler != null) {
+            captureHandler.restartPreviewAndDecode();
+        }
+    }
+
+    /**
+     * 切换闪光灯
+     */
+    void switchFlash() {
+        cameraManager.switchFlash();
+    }
+
+    /**
+     * 是否有闪光灯
+     */
+    static boolean isSupportCameraFlash(PackageManager pm) {
         if (pm != null) {
             FeatureInfo[] features = pm.getSystemAvailableFeatures();
             if (features != null) {
@@ -270,26 +229,6 @@ public class CaptureHelper implements CaptureLifecycle, CaptureTouchEvent, Captu
             }
         }
         return false;
-    }
-
-    /**
-     * 重新启动扫码和解码器
-     */
-    public void restartPreviewAndDecode() {
-        if (captureHandler != null) {
-            captureHandler.restartPreviewAndDecode();
-        }
-    }
-
-    /**
-     * 设置扫码回调
-     *
-     * @param callback
-     * @return
-     */
-    public CaptureHelper setOnCaptureCallback(OnCaptureCallback callback) {
-        this.onCaptureCallback = callback;
-        return this;
     }
 
     private int getCurrentOrientation() {
@@ -307,16 +246,10 @@ public class CaptureHelper implements CaptureLifecycle, CaptureTouchEvent, Captu
         }
     }
 
-    /*切换闪光灯*/
-    public void switchFlashLight() {
-        cameraManager.switchFlashLight();
-    }
 
-    public Handler getCaptureHandler() {
-        return captureHandler;
-    }
-
-    public ViewfinderView getViewfinderView() {
-        return viewfinderView;
+    @Override
+    public void onDestroy() {
+        inactivityTimer.shutdown();
+        viewfinderView.stopAnimator();
     }
 }

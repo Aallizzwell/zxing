@@ -4,9 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.LinearLayoutCompat;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.aalizzwell.zxing.bean.InitOption;
+import com.aalizzwell.zxing.view.ViewfinderView;
 import com.google.zxing.Result;
 import com.maizi.zxing.R;
 import com.aalizzwell.zxing.common.Constant;
@@ -14,26 +17,24 @@ import com.aalizzwell.zxing.decode.DecodeImgCallback;
 import com.aalizzwell.zxing.decode.DecodeImgThread;
 import com.aalizzwell.zxing.utils.ImageUtil;
 
-public class CaptureAlbumActivity extends BaseCaptureActivity implements View.OnClickListener {
+public class CaptureAlbumActivity extends BaseCaptureActivity implements View.OnClickListener, OnResultCallback {
 
     private AppCompatImageView flashLightIV;
     private TextView flashLightTV;
     public boolean isOpen = false;
-
-    @Override
-    public int getLayoutId() {
-        return R.layout.activity_capture_album;
-    }
+    CaptureHelper captureHelper;
+    private InitOption initOption;
 
     @Override
     public void onClick(View view) {
         int id = view.getId();
         //切换闪光灯
         if (id == R.id.flashLightLayout) {
-            captureHelper.switchFlashLight();
+            captureHelper.switchFlash();
             switchFlashImg(isOpen);
-        } else if (id == R.id.albumLayout) {
-            //打开相册
+        }
+        //打开相册
+        else if (id == R.id.albumLayout) {
             Intent intent = new Intent();
             intent.setAction(Intent.ACTION_PICK);
             intent.setType("image/*");
@@ -45,8 +46,41 @@ public class CaptureAlbumActivity extends BaseCaptureActivity implements View.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        initOption = new InitOption();
         super.onCreate(savedInstanceState);
         initView();
+        captureHelper = getCaptureHelper();
+    }
+
+    @Override
+    public int getLayoutView() {
+        return R.layout.activity_capture_album;
+    }
+
+    @Override
+    public ViewfinderView getViewfinderView() {
+        return findViewById(R.id.viewfinderView);
+    }
+
+    @Override
+    public SurfaceView geSurfaceView() {
+        return findViewById(R.id.surfaceView);
+    }
+
+    @Override
+    public InitOption getInitConfig() {
+
+        return initOption;
+    }
+
+    @Override
+    public OnResultCallback getResultListener() {
+        return this;
+    }
+
+    @Override
+    public void onResultCallback(Result result) {
+
     }
 
     private void initView() {
@@ -58,8 +92,7 @@ public class CaptureAlbumActivity extends BaseCaptureActivity implements View.On
         LinearLayoutCompat albumLayout = findViewById(R.id.albumLayout);
         albumLayout.setOnClickListener(this);
 
-        /*有闪光灯就显示手电筒按钮  否则不显示*/
-        if (CaptureHelper.isSupportCameraLedFlash(getPackageManager())) {
+        if (CaptureHelper.isSupportCameraFlash(getPackageManager())) {
             flashLightLayout.setVisibility(View.VISIBLE);
         } else {
             flashLightLayout.setVisibility(View.GONE);
@@ -81,18 +114,6 @@ public class CaptureAlbumActivity extends BaseCaptureActivity implements View.On
         }
     }
 
-    /**
-     * 扫码结果回调
-     *
-     * @param result 扫码结果
-     */
-    @Override
-    public boolean onResultCallback(String result) {
-        if (initConfig.isContinuousScan()) {//连续扫码时，直接弹出结果
-            Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
-        }
-        return super.onResultCallback(result);
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -102,7 +123,7 @@ public class CaptureAlbumActivity extends BaseCaptureActivity implements View.On
             new DecodeImgThread(path, new DecodeImgCallback() {
                 @Override
                 public void onImageDecodeSuccess(Result result) {
-                    captureHelper.onResult(result);
+                    onResultCallback(result);
                 }
 
                 @Override
@@ -111,5 +132,11 @@ public class CaptureAlbumActivity extends BaseCaptureActivity implements View.On
                 }
             }).run();
         }
+    }
+
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
     }
 }

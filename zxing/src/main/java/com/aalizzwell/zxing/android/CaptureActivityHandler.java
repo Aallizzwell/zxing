@@ -42,7 +42,7 @@ public final class CaptureActivityHandler extends Handler {
     private final DecodeThread decodeThread;
     private State state;
     private final CameraManager cameraManager;
-    private final OnCaptureListener onCaptureListener;
+    private final OnHandleDecodeListener onCaptureListener;
 
 
     private enum State {
@@ -51,7 +51,7 @@ public final class CaptureActivityHandler extends Handler {
         DONE
     }
 
-    public CaptureActivityHandler(CaptureHelper captureHelper, CameraManager cameraManager, OnCaptureListener onCaptureListener) {
+    public CaptureActivityHandler(CaptureHelper captureHelper, CameraManager cameraManager, OnHandleDecodeListener onCaptureListener) {
         this.captureHelper = captureHelper;
         decodeThread = new DecodeThread(captureHelper, new ViewfinderResultPointCallback(
                 captureHelper.getViewfinderView()));
