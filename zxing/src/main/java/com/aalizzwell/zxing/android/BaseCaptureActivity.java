@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
+
 import com.aalizzwell.zxing.bean.InitOption;
 import com.maizi.zxing.R;
 import com.aalizzwell.zxing.view.ViewfinderView;
@@ -15,6 +16,7 @@ public class BaseCaptureActivity extends AppCompatActivity implements OnCaptureC
 
     public CaptureHelper captureHelper;
     public InitOption initConfig;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +33,7 @@ public class BaseCaptureActivity extends AppCompatActivity implements OnCaptureC
             Log.i("initConfig", e.toString());
         }
         if (initConfig == null) {
-            initConfig = new InitOption();
+            initConfig = getInitConfig();
         }
         SurfaceView surfaceView = findViewById(getSurfaceViewId());
         ViewfinderView viewfinderView = findViewById(getViewfinderViewId());
@@ -92,6 +94,12 @@ public class BaseCaptureActivity extends AppCompatActivity implements OnCaptureC
      */
     public int getSurfaceViewId() {
         return R.id.surfaceView;
+    }
+
+
+    public InitOption getInitConfig() {
+
+        return new InitOption();
     }
 
     @Override
