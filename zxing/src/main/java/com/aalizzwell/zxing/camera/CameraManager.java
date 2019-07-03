@@ -290,10 +290,6 @@ public class CameraManager {
         if (config == null) {
             config = new InitOption();
         }
-        //现在的手机的处理器性能过剩严重,Rect可以为屏幕大小，可以增加扫描精,所以默认全屏扫描
-        if (config.isFullScreenScan()) {
-            return new PlanarYUVLuminanceSource(data, width, height, 0, 0, width, height, false);
-        }
         Point screenResolution = configManager.getScreenResolution();
         //竖屏扫描时
         if (screenResolution.x < screenResolution.y) {
@@ -308,8 +304,14 @@ public class CameraManager {
             height = tmp;
             data = rotatedData;
         }
-        int actionbarHeight = context.getResources().getDimensionPixelSize(R.dimen.toolBarHeight);
-        return new PlanarYUVLuminanceSource(data, width, height, rect.left, rect.top + actionbarHeight, rect.width(), rect.height(), false);
+        //现在的手机的处理器性能过剩严重,Rect可以为屏幕大小，可以增加扫描精,所以默认全屏扫描
+        if (config.isFullScreenScan()) {
+            return new PlanarYUVLuminanceSource(data, width, height, 0, 0, width, height, false);
+        } else {
+            int actionbarHeight = context.getResources().getDimensionPixelSize(R.dimen.toolBarHeight);
+            return new PlanarYUVLuminanceSource(data, width, height, rect.left, rect.top + actionbarHeight, rect.width(), rect.height(), false);
+
+        }
     }
 
     /**
