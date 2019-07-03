@@ -51,7 +51,7 @@ public final class CaptureActivityHandler extends Handler {
         DONE
     }
 
-    public CaptureActivityHandler(CaptureHelper captureHelper, CameraManager cameraManager, OnHandleDecodeListener onCaptureListener) {
+    CaptureActivityHandler(CaptureHelper captureHelper, CameraManager cameraManager, OnHandleDecodeListener onCaptureListener) {
         this.captureHelper = captureHelper;
         decodeThread = new DecodeThread(captureHelper, new ViewfinderResultPointCallback(
                 captureHelper.getViewfinderView()));
@@ -101,7 +101,7 @@ public final class CaptureActivityHandler extends Handler {
     /**
      * 完全退出
      */
-    public void quitSynchronously() {
+    void quitSynchronously() {
         state = State.DONE;
         cameraManager.stopPreview();
         Message quit = Message.obtain(decodeThread.getHandler(), Constant.QUIT);
@@ -119,7 +119,7 @@ public final class CaptureActivityHandler extends Handler {
         removeMessages(Constant.DECODE_FAILED);
     }
 
-    public void restartPreviewAndDecode() {
+    void restartPreviewAndDecode() {
         if (state == State.SUCCESS) {
             state = State.PREVIEW;
             cameraManager.requestPreviewFrame(decodeThread.getHandler(), Constant.DECODE);

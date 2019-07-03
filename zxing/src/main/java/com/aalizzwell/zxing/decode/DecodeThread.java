@@ -51,11 +51,10 @@ public final class DecodeThread extends Thread {
         hints = new EnumMap<>(DecodeHintType.class);
 
         Vector<BarcodeFormat> decodeFormats = new Vector<BarcodeFormat>();
-        /*是否解析有条形码（一维码）*/
+        //是否解析有条形码
         if (captureHelper.initConfig.isDecodeBarCode()) {
             decodeFormats.addAll(DecodeFormatManager.ONE_D_FORMATS);
         }
-
         decodeFormats.addAll(DecodeFormatManager.QR_CODE_FORMATS);
         decodeFormats.addAll(DecodeFormatManager.DATA_MATRIX_FORMATS);
 

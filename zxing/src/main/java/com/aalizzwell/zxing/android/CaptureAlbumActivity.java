@@ -6,6 +6,8 @@ import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.aalizzwell.zxing.bean.InitOption;
@@ -46,6 +48,12 @@ public class CaptureAlbumActivity extends BaseCaptureActivity implements View.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //去除标题栏
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        //去除状态栏
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         initOption = new InitOption();
         super.onCreate(savedInstanceState);
         initView();

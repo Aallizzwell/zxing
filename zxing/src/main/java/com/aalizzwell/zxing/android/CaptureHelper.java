@@ -37,7 +37,7 @@ public class CaptureHelper implements ActivityLifecycle {
     private SurfaceHolder surfaceHolder;
     private SurfaceHolder.Callback surfaceCallback;
     private OnResultCallback onResultCallback;
-    private InitOption initConfig;
+    public InitOption initConfig;
     private CaptureActivityHandler captureHandler;
     private OnHandleDecodeListener onHandleDecodeListener;
     private boolean hasSurface;
