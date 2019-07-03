@@ -28,6 +28,48 @@ public class InitOption implements Serializable {
     private int frameLineColor = R.color.frame_corner_color;
     //扫描线颜色
     private int scanLineColor = R.color.scanLineColor;
+    //提示文字颜色
+    private int tipTextColor = R.color.scanLineColor;
+    //提示文字大小
+    private String tipTextContent = "将二维码放入输入框，即可自动扫描";
+    private int tipTextSize = 15;
+    private Boolean isShowTip = true;
+
+    public void setDecodeBarCode(boolean decodeBarCode) {
+        this.decodeBarCode = decodeBarCode;
+    }
+
+    public int getTipTextColor() {
+        return tipTextColor;
+    }
+
+    public void setTipTextColor(int tipTextColor) {
+        this.tipTextColor = tipTextColor;
+    }
+
+    public String getTipTextContent() {
+        return tipTextContent;
+    }
+
+    public void setTipTextContent(String tipTextContent) {
+        this.tipTextContent = tipTextContent;
+    }
+
+    public int getTipTextSize() {
+        return tipTextSize;
+    }
+
+    public void setTipTextSize(int tipTextSize) {
+        this.tipTextSize = tipTextSize;
+    }
+
+    public Boolean getShowTip() {
+        return isShowTip;
+    }
+
+    public void setShowTip(Boolean showTip) {
+        isShowTip = showTip;
+    }
 
     public InitOption setScanLineColor(@ColorRes int color) {
         this.scanLineColor = color;
