@@ -134,7 +134,6 @@ public class CaptureHelper implements ActivityLifecycle {
             Log.w(TAG, "Unexpected error initializing camera", e);
             displayFrameworkBugMessageAndExit();
         }
-        displayFrameworkBugMessageAndExit();
     }
 
     @Override
