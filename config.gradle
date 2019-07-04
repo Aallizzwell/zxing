@@ -36,7 +36,7 @@ def deps = [
         aspectjrt : "org.aspectj:aspectjrt:1.8.+",
         qiniu     : "com.qiniu:qiniu-android-sdk:7.3.1",
         permission: "com.yanzhenjie.permission:support:2.0.1",
-        zxing     : "com.google.zxing:core:3.4.0",
+        zxing     : "com.google.zxing:core:3.3.0",
         gson      : "com.google.code.gson:gson:2.8.0"
 ]
 
