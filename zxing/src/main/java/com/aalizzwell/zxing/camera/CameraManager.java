@@ -39,13 +39,13 @@ public class CameraManager {
      * clear the handler so it will only receive one message.
      */
     private final PreviewCallback previewCallback;
-    private InitOption config;
+    private InitOption initOption;
 
-    public CameraManager(Context context, InitOption config) {
+    public CameraManager(Context context, InitOption initOption) {
         this.context = context;
         this.configManager = new CameraConfigurationManager(context);
         previewCallback = new PreviewCallback(configManager);
-        this.config = config;
+        this.initOption = initOption;
     }
 
     /**
@@ -194,12 +194,12 @@ public class CameraManager {
             if (screenResolution.x < screenResolution.y) {
                 size = (int) (screenResolution.x * 0.6);
                 leftOffset = (screenResolution.x - size) / 2;
-                topOffset = (screenResolution.y - size) / 5;
+                topOffset = (screenResolution.y - size) / 3;
 
             } else {
                 size = (int) (screenResolution.y * 0.6);
                 leftOffset = (screenResolution.x - size) / 2;
-                topOffset = (screenResolution.y - size) / 5;
+                topOffset = (screenResolution.y - size) / 3;
             }
             framingRect = new Rect(leftOffset, topOffset, leftOffset + size, topOffset + size);
             Log.d(TAG, "Calculated framing rect: " + framingRect);
@@ -287,9 +287,6 @@ public class CameraManager {
         if (rect == null) {
             return null;
         }
-        if (config == null) {
-            config = new InitOption();
-        }
         Point screenResolution = configManager.getScreenResolution();
         //竖屏扫描时
         if (screenResolution.x < screenResolution.y) {
@@ -305,12 +302,11 @@ public class CameraManager {
             data = rotatedData;
         }
         //现在的手机的处理器性能过剩严重,Rect可以为屏幕大小，可以增加扫描精,所以默认全屏扫描
-        if (config.isFullScreenScan()) {
+        if (initOption.isFullScreenScan()) {
             return new PlanarYUVLuminanceSource(data, width, height, 0, 0, width, height, false);
         } else {
             int actionbarHeight = context.getResources().getDimensionPixelSize(R.dimen.toolBarHeight);
             return new PlanarYUVLuminanceSource(data, width, height, rect.left, rect.top + actionbarHeight, rect.width(), rect.height(), false);
-
         }
     }
 

@@ -3,6 +3,7 @@ package com.aalizzwell.zxing.android;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.*;
+
 import com.aalizzwell.zxing.bean.InitOption;
 import com.aalizzwell.zxing.view.ViewfinderView;
 
