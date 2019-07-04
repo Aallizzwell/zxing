@@ -10,7 +10,7 @@ public class Constant {
     public static final int RETURN_SCAN_RESULT = 7;
     public static final int REQUEST_IMAGE = 10;
 
-    public static final String INTENT_INIT_OPTION = "initConfig";
+    public static final String INTENT_INIT_OPTION = "initOption";
 
     public static final String KEY_FRONT_LIGHT_MODE = "preferences_front_light_mode";
     public static final String KEY_INVERT_SCAN = "preferences_invert_scan";

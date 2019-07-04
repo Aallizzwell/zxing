@@ -9,10 +9,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.*;
 import com.google.zxing.Result;
 import com.aalizzwell.zxing.AmbientLightManager;
 import com.maizi.zxing.R;
@@ -37,16 +34,16 @@ public class CaptureHelper implements ActivityLifecycle {
     private SurfaceHolder surfaceHolder;
     private SurfaceHolder.Callback surfaceCallback;
     private OnResultCallback onResultCallback;
-    public InitOption initConfig;
+    public InitOption initOption;
     private CaptureActivityHandler captureHandler;
     private OnHandleDecodeListener onHandleDecodeListener;
     private boolean hasSurface;
 
-    CaptureHelper(Activity activity, InitOption initConfig, OnResultCallback onResultCallback, SurfaceView surfaceView, ViewfinderView viewfinderView) {
+    CaptureHelper(Activity activity, InitOption initOption, OnResultCallback onResultCallback, SurfaceView surfaceView, ViewfinderView viewfinderView) {
         this.activity = activity;
         this.surfaceView = surfaceView;
         this.viewfinderView = viewfinderView;
-        this.initConfig = initConfig;
+        this.initOption = initOption;
         this.onResultCallback = onResultCallback;
     }
 
@@ -55,7 +52,7 @@ public class CaptureHelper implements ActivityLifecycle {
         hasSurface = false;
         surfaceHolder = surfaceView.getHolder();
         inactivityTimer = new InactivityTimer(activity);
-        beepManager = new BeepManager(activity, initConfig);
+        beepManager = new BeepManager(activity, initOption);
         ambientLightManager = new AmbientLightManager(activity);
         surfaceCallback = new SurfaceHolder.Callback() {
             @Override
@@ -95,7 +92,7 @@ public class CaptureHelper implements ActivityLifecycle {
         // want to open the camera driver and measure the screen size if we're going to show the help on
         // first launch. That led to bugs where the scanning rectangle was the wrong size and partially
         // off screen.
-        cameraManager = new CameraManager(activity.getApplication(), initConfig);
+        cameraManager = new CameraManager(activity.getApplication(), initOption);
         viewfinderView.setCameraManager(cameraManager);
         surfaceHolder = surfaceView.getHolder();
         //屏幕方向
@@ -137,6 +134,7 @@ public class CaptureHelper implements ActivityLifecycle {
             Log.w(TAG, "Unexpected error initializing camera", e);
             displayFrameworkBugMessageAndExit();
         }
+        displayFrameworkBugMessageAndExit();
     }
 
     @Override
@@ -156,17 +154,17 @@ public class CaptureHelper implements ActivityLifecycle {
 
 
     private void onResult(final Result result) {
-        if (initConfig.isContinuousScan()) {
+        if (initOption.isContinuousScan()) {
             if (onResultCallback != null) {
                 onResultCallback.onResultCallback(result);
             }
-            if (initConfig.isAutoRestartPreviewAndDecode()) {
+            if (initOption.isAutoRestartPreviewAndDecode()) {
                 restartPreviewAndDecode();
             }
             return;
         }
         //如果播放音效，则稍微延迟一点，给予播放音效时间
-        if (initConfig.isPlayBeep()) {
+        if (initOption.isPlayBeep()) {
             captureHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -190,7 +188,7 @@ public class CaptureHelper implements ActivityLifecycle {
     }
 
     private void displayFrameworkBugMessageAndExit() {
-        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.AlertDialog);
         builder.setTitle("扫一扫");
         builder.setMessage(activity.getString(R.string.msg_camera_framework_bug));
         builder.setPositiveButton(R.string.button_ok, new FinishListener(activity));

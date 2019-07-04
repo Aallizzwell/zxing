@@ -52,7 +52,7 @@ public final class DecodeThread extends Thread {
 
         Vector<BarcodeFormat> decodeFormats = new Vector<BarcodeFormat>();
         //是否解析有条形码
-        if (captureHelper.initConfig.isDecodeBarCode()) {
+        if (captureHelper.initOption.isDecodeBarCode()) {
             decodeFormats.addAll(DecodeFormatManager.ONE_D_FORMATS);
         }
         decodeFormats.addAll(DecodeFormatManager.QR_CODE_FORMATS);
